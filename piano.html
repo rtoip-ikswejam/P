@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalistyczne Pianino Pionowe</title>
+    <style>
+        :root {
+            /* Kolory klawiszy - od najjaśniejszej zieleni na górze do najciemniejszej na dole */
+            --key-color-1: #b2dfdb; /* Najjaśniejsza zieleń (C5) */
+            --key-color-2: #a7ffeb;
+            --key-color-3: #80cbc4;
+            --key-color-4: #4db6ac;
+            --key-color-5: #26a69a;
+            --key-color-6: #00897b;
+            --key-color-7: #00695c;
+            --key-color-8: #004d40; /* Ciemna zieleń (C4) */
+            --gap: 5px; /* Niewielka przerwa między klawiszami */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Zapobiega przewijaniu */
+            display: flex;
+            justify-content: center; /* Centruje kontener klawiszy poziomo */
+            align-items: flex-start; /* Klawisze zaczynają się od góry */
+            height: 100vh; /* Wypełnia całą wysokość ekranu */
+            background-color: #333; /* Ciemne tło */
+            font-family: 'Arial', sans-serif; /* Nowoczesna czcionka */
+        }
+
+        .keyboard-container {
+            display: flex;
+            flex-direction: column; /* Klawisze ułożone pionowo */
+            width: 60%; /* Zajmuje 60% szerokości ekranu */
+            height: 100%; /* Wypełnia całą wysokość rodzica (body) */
+            gap: var(--gap);
+            box-sizing: border-box; /* Uwzględnia padding i border w szerokości/wysokości */
+            padding: var(--gap); /* Padding wokół całego kontenera klawiszy */
+        }
+
+        .key {
+            flex-grow: 1; /* Każdy klawisz zajmuje równą część dostępnego miejsca w pionie */
+            width: 100%; /* Klawisz zajmuje całą szerokość swojego kontenera (60% ekranu) */
+            border-radius: 8px; /* Lekko zaokrąglone rogi */
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em; /* Rozmiar czcionki (może być dostosowany, jeśli klawisze mają być puste) */
+            color: transparent; /* Ustawienie koloru tekstu na przezroczysty, aby ukryć "C" itd. */
+            text-shadow: none; /* Usunięcie cienia tekstu */
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; /* Płynne przejście dla efektu kliknięcia */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Delikatny cień */
+        }
+
+        .key:active {
+            transform: translateY(2px); /* Delikatne wciśnięcie klawisza */
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Kolory dla poszczególnych klawiszy */
+        .key:nth-child(1) { background-color: var(--key-color-1); }
+        .key:nth-child(2) { background-color: var(--key-color-2); }
+        .key:nth-child(3) { background-color: var(--key-color-3); }
+        .key:nth-child(4) { background-color: var(--key-color-4); }
+        .key:nth-child(5) { background-color: var(--key-color-5); }
+        .key:nth-child(6) { background-color: var(--key-color-6); }
+        .key:nth-child(7) { background-color: var(--key-color-7); }
+        .key:nth-child(8) { background-color: var(--key-color-8); }
+
+        /* Responsywność - opcjonalne dostosowania dla mniejszych ekranów */
+        @media (max-width: 768px) {
+            .keyboard-container {
+                width: 80%; /* Większa szerokość na mniejszych ekranach */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .keyboard-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="keyboard-container">
+        <div class="key" data-note="C5"></div>
+        <div class="key" data-note="B4"></div>
+        <div class="key" data-note="A4"></div>
+        <div class="key" data-note="G4"></div>
+        <div class="key" data-note="F4"></div>
+        <div class="key" data-note="E4"></div>
+        <div class="key" data-note="D4"></div>
+        <div class="key" data-note="C4"></div>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Mapowanie nut na częstotliwości (standardowe strojenie A4=440Hz, podniesione o oktawę)
+        const noteFrequencies = {
+            'C5': 523.25,
+            'B4': 493.88,
+            'A4': 440.00,
+            'G4': 392.00,
+            'F4': 349.23,
+            'E4': 329.63,
+            'D4': 293.66,
+            'C4': 261.63
+        };
+
+        function playNote(frequency, duration = 0.5) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine'; // Możesz eksperymentować z 'sine', 'square', 'sawtooth', 'triangle'
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Głośność początkowa
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration); // Wygaszanie
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        document.querySelectorAll('.key').forEach(key => {
+            key.addEventListener('click', () => {
+                const note = key.dataset.note;
+                const frequency = noteFrequencies[note];
+                if (frequency) {
+                    playNote(frequency);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
