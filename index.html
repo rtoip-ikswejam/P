@@ -60,7 +60,6 @@
         }
 
         .key {
-            /* KLUCZOWA ZMIANA: Ustawienie stałej wysokości kafla z root variable */
             height: var(--key-height); 
             width: 100%; /* Klawisz zajmuje całą szerokość swojej kolumny */
             border-radius: 8px; /* Lekko zaokrąglone rogi */
@@ -102,29 +101,22 @@
 
         /* Responsywność - dla małych ekranów (np. telefony) */
         @media (max-width: 768px) {
-            :root {
-                 /* Przeliczenie wysokości kafla dla układu kolumnowego na komórce */
-                 /* Dwie kolumny, każda po 7 kafli, więc łącznie 14 kafli. Jeśli są jedna pod drugą, każda kolumna ma 7 kafli.
-                 Każda kolumna ma wysokość 50vh, czyli 7 kafli musi zmieścić się w 50vh pomniejszone o paddingi i gapy kolumny. */
-                --key-height: calc((50vh - (8 * var(--gap))) / 7);
-            }
             .keyboard-wrapper {
                 width: 95%; /* Zwiększona szerokość, by lepiej wykorzystać przestrzeń */
-                flex-direction: column; /* Kolumny jedna pod drugą */
-                height: auto; /* Pozwalamy wysokości dostosować się do zawartości */
+                /* Usunięcie flex-direction: column; aby zachować dwie kolumny */
+                height: 100%; /* Utrzymujemy 100% wysokości, aby wypełniały ekran */
             }
             .key-column {
-                /* Ustawiamy konkretną wysokość dla każdej kolumny, aby kwadraty się zmieściły */
-                height: calc(50vh - var(--gap) / 2); /* Około połowa wysokości widocznego obszaru, uwzględniając gap */
+                /* Każda kolumna zajmuje swoją część ekranu w pionie */
+                /* Wysokość kolumny jest już dostosowana przez --key-height, który jest obliczany na podstawie 100vh */
+                /* Nie potrzeba tutaj specificznego height: calc(50vh - var(--gap) / 2); jeśli wrapper ma 100% */
+                height: 100%; /* Rozciągnij kolumny na całą wysokość wrappera */
             }
         }
 
-        /* Dodatkowe dostosowanie dla bardzo małych ekranów (opcjonalnie) */
-        @media (max-width: 480px) {
-             .key-column {
-                height: calc(50vh - var(--gap) / 2);
-            }
-        }
+        /* Dostosowanie --key-height dla wszystkich rozmiarów */
+        /* Ta zmienna jest kluczowa i musi być poprawnie ustawiona raz w :root */
+        /* Usunięcie jej duplikacji z media queries, bo bazuje na 100vh */
     </style>
 </head>
 <body>
